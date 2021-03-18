@@ -30,12 +30,7 @@ public class CoreDataFeedStore: FeedStore {
 					return
 				}
 				
-				let localFeedImages = cache
-					.feed
-					.compactMap { $0 as? ManagedFeedImage }
-					.map(LocalFeedImage.init(managedFeedImage:))
-				
-				completion(.found(feed: localFeedImages, timestamp: cache.timestamp))
+				completion(.found(feed: cache.localFeed, timestamp: cache.timestamp))
 			} catch {
 				completion(.failure(error))
 			}
@@ -52,14 +47,7 @@ public class CoreDataFeedStore: FeedStore {
 		context.perform {
 			let managedCache = ManagedCache(context: context)
 			managedCache.timestamp = timestamp
-			managedCache.feed = NSOrderedSet(array: feed.map { local in
-				let managed = ManagedFeedImage(context: context)
-				managed.id = local.id
-				managed.imageDescription = local.description
-				managed.location = local.location
-				managed.url = local.url
-				return managed
-			})
+			managedCache.feed = ManagedCache.images(from: feed, in: context)
 			
 			do {
 				try context.save()
@@ -68,15 +56,6 @@ public class CoreDataFeedStore: FeedStore {
 				completion(error)
 			}
 		}
-	}
-}
-
-private extension LocalFeedImage {
-	init(managedFeedImage: ManagedFeedImage) {
-		self.id = managedFeedImage.id
-		self.description = managedFeedImage.imageDescription
-		self.location = managedFeedImage.location
-		self.url = managedFeedImage.url
 	}
 }
 
