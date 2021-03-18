@@ -12,7 +12,7 @@ import CoreData
 
 @objc(ManagedFeedImage)
 public class ManagedFeedImage: NSManagedObject {
-	@NSManaged public var id: String
+	@NSManaged public var id: UUID
 	@NSManaged public var imageDescription: String?
 	@NSManaged public var location: String?
 	@NSManaged public var url: URL
