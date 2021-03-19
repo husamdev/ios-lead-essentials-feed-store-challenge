@@ -41,7 +41,15 @@ public class CoreDataFeedStore: FeedStore {
 	}
 	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+		let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: ManagedCache.entity().name!)
+		let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
 		
+		do {
+			try context.execute(batchDeleteRequest)
+			completion(nil)
+		} catch {
+			completion(error)
+		}
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
@@ -92,5 +100,14 @@ private extension NSManagedObjectModel {
 		return bundle
 			.url(forResource: name, withExtension: "momd")
 			.flatMap { NSManagedObjectModel(contentsOf: $0) }
+	}
+}
+
+private extension NSManagedObjectContext {
+	func executeAndMergeChanges(using batchDeleteRequest: NSBatchDeleteRequest) throws {
+		batchDeleteRequest.resultType = .resultTypeObjectIDs
+		let result = try execute(batchDeleteRequest) as? NSBatchDeleteResult
+		let changes: [AnyHashable: Any] = [NSDeletedObjectsKey: result?.result as? [NSManagedObjectID] ?? []]
+		NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self])
 	}
 }
