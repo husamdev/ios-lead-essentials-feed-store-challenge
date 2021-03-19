@@ -25,6 +25,9 @@ public class CoreDataFeedStore: FeedStore {
 		context.perform {
 			do {
 				let request: NSFetchRequest<ManagedCache> = ManagedCache.fetchRequest()
+				let sort = NSSortDescriptor(keyPath: \ManagedCache.timestamp, ascending: false)
+				request.sortDescriptors = [sort]
+				
 				guard let cache = try context.fetch(request).first else {
 					completion(.empty)
 					return
