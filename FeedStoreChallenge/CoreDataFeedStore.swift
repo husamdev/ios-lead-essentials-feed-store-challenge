@@ -21,7 +21,6 @@ public class CoreDataFeedStore: FeedStore {
 	
 	public func retrieve(completion: @escaping FeedStore.RetrievalCompletion) {
 		let context = self.context
-		
 		context.perform {
 			do {
 				let request: NSFetchRequest<ManagedCache> = ManagedCache.fetchRequest()
@@ -40,21 +39,24 @@ public class CoreDataFeedStore: FeedStore {
 		}
 	}
 	
+	
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: ManagedCache.entity().name!)
-		let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-		
-		do {
-			try context.execute(batchDeleteRequest)
-			completion(nil)
-		} catch {
-			completion(error)
+		let context = self.context
+		context.perform {
+			let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: ManagedCache.entity().name!)
+			let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+			
+			do {
+				try context.execute(batchDeleteRequest)
+				completion(nil)
+			} catch {
+				completion(error)
+			}
 		}
 	}
 	
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		let context = self.context
-		
 		context.perform {
 			let managedCache = ManagedCache(context: context)
 			managedCache.timestamp = timestamp
@@ -68,6 +70,7 @@ public class CoreDataFeedStore: FeedStore {
 			}
 		}
 	}
+	
 }
 
 private extension NSPersistentContainer {
