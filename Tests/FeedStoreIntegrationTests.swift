@@ -27,9 +27,9 @@ class FeedStoreIntegrationTests: XCTestCase {
 	}
 	
 	func test_retrieve_deliversEmptyOnEmptyCache() throws {
-//		let sut = try makeSUT()
-//
-//		expect(sut, toRetrieve: .empty)
+		let sut = try makeSUT()
+
+		expect(sut, toRetrieve: .empty)
 	}
 	
 	func test_retrieve_deliversFeedInsertedOnAnotherInstance() throws {
@@ -71,16 +71,32 @@ class FeedStoreIntegrationTests: XCTestCase {
 	
 	// - MARK: Helpers
 	
-	private func makeSUT() throws -> FeedStore {
-		fatalError("Must be implemented")
+	private func makeSUT(file: StaticString = #file, line: UInt = #line) throws -> FeedStore {
+		let storeBundle = Bundle(for: CoreDataFeedStore.self)
+		let storeURL = testSpecificStoreURL()
+		let sut = try! CoreDataFeedStore(storeURL: storeURL, bundle: storeBundle)
+		trackForMemoryLeaks(sut, file: file, line: line)
+		return sut
+	}
+	
+	private func testSpecificStoreURL() -> URL {
+		return cachesDirectory().appendingPathComponent("\(type(of: self)).store")
+	}
+	
+	private func cachesDirectory() -> URL {
+		return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
 	}
 	
 	private func setupEmptyStoreState() throws {
-		
+		try deleteStoreArtifacts()
 	}
 	
 	private func undoStoreSideEffects() throws {
-		
+		try deleteStoreArtifacts()
+	}
+	
+	private func deleteStoreArtifacts() throws {
+		try FileManager.default.removeItem(at: testSpecificStoreURL())
 	}
 	
 }
